@@ -5,27 +5,36 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 
-	// Step 4: Initialize Sentry with tracesSampleRate and EnableProfiling
-	err := sentry.Init(sentry.ClientOptions{
-		Dsn:                "https://ad297c80676444d7bf21a3919c2b6d5a@o4504052292517888.ingest.us.sentry.io/4504300727566336", // Replace with your Sentry DSN
-		Release:            "kp-go@1.0.0",
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	// Initialize Sentry with tracesSampleRate and EnableProfiling
+	clientOptions := sentry.ClientOptions{
+		Dsn:                os.Getenv("SENTRY_DSN"),     // Set DSN from environment variable
+		Release:            os.Getenv("SENTRY_RELEASE"), // Set release from environment variable
 		EnableTracing:      true,
 		TracesSampleRate:   1.0, // Capture 100% of transactions
 		ProfilesSampleRate: 1.0, // Enable profiling
-	})
+	}
 
-	if err == nil && sentry.CurrentHub().Client().Options().Release == "" {
+	if clientOptions.Release == "" {
 		log.Fatalf("sentry.Init: Release identifier not set")
 	}
 
+	err = sentry.Init(clientOptions)
 	if err != nil {
 		log.Fatalf("sentry.Init: %s", err)
 	}

@@ -22,6 +22,15 @@ Before you begin, ensure you have the following installed on your machine:
     go mod tidy
     ```
 
+3. **Add a `.env` file**:
+    Create a file named `.env` in the root directory of your project and add the following content:
+    ```sh
+    SENTRY_DSN=YOUR_DSN_KEY
+    SENTRY_RELEASE=your_package@your_version
+    ```
+
+
+
 ## Running the Server
 
 To start the server, run the following command:
