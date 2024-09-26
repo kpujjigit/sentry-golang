@@ -16,10 +16,15 @@ func main() {
 	// Step 4: Initialize Sentry with tracesSampleRate and EnableProfiling
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn:                "https://ad297c80676444d7bf21a3919c2b6d5a@o4504052292517888.ingest.us.sentry.io/4504300727566336", // Replace with your Sentry DSN
+		Release:            "kp-go@1.0.0",
 		EnableTracing:      true,
 		TracesSampleRate:   1.0, // Capture 100% of transactions
 		ProfilesSampleRate: 1.0, // Enable profiling
 	})
+
+	if err == nil && sentry.CurrentHub().Client().Options().Release == "" {
+		log.Fatalf("sentry.Init: Release identifier not set")
+	}
 
 	if err != nil {
 		log.Fatalf("sentry.Init: %s", err)
@@ -99,15 +104,6 @@ func main() {
 		})
 		sentry.CaptureMessage("Context information added")
 		w.Write([]byte("Context information added"))
-	})
-
-	http.HandleFunc("/release", func(w http.ResponseWriter, r *http.Request) {
-		// Track releases
-		sentry.ConfigureScope(func(scope *sentry.Scope) {
-			scope.SetTag("release", "v1.0.0")
-		})
-		sentry.CaptureMessage("Release tracked")
-		w.Write([]byte("Release tracked"))
 	})
 
 	// Wrap the mux with the Sentry handler
