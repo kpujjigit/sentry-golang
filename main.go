@@ -41,6 +41,12 @@ func main() {
 		time.Sleep(100 * time.Millisecond) // Simulate some work
 		span.Finish()
 
+		// Add a breadcrumb
+		sentry.AddBreadcrumb(&sentry.Breadcrumb{
+			Message: "User visited the homepage",
+			Level:   sentry.LevelInfo,
+		})
+
 		w.Write([]byte("Hello, World!"))
 	})
 
@@ -67,6 +73,41 @@ func main() {
 
 		time.Sleep(2 * time.Second) // Simulate a delay
 		w.Write([]byte("Performance endpoint"))
+	})
+
+	http.HandleFunc("/feedback", func(w http.ResponseWriter, r *http.Request) {
+		// Collect user feedback
+		sentry.CaptureMessage("User feedback collected")
+		w.Write([]byte("Thank you for your feedback!"))
+	})
+
+	http.HandleFunc("/custom-tags", func(w http.ResponseWriter, r *http.Request) {
+		// Add custom tags
+		sentry.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetTag("custom-tag", "example")
+		})
+		sentry.CaptureMessage("Custom tags added")
+		w.Write([]byte("Custom tags added"))
+	})
+
+	http.HandleFunc("/context", func(w http.ResponseWriter, r *http.Request) {
+		// Add additional context information
+		sentry.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetContext("example", map[string]interface{}{
+				"key": "value",
+			})
+		})
+		sentry.CaptureMessage("Context information added")
+		w.Write([]byte("Context information added"))
+	})
+
+	http.HandleFunc("/release", func(w http.ResponseWriter, r *http.Request) {
+		// Track releases
+		sentry.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetTag("release", "v1.0.0")
+		})
+		sentry.CaptureMessage("Release tracked")
+		w.Write([]byte("Release tracked"))
 	})
 
 	// Wrap the mux with the Sentry handler
