@@ -32,6 +32,15 @@ func main() {
 	// Step 3: Create a simple HTTP server
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Start a root transaction
+		tx := sentry.StartTransaction(r.Context(), "GET /")
+		defer tx.Finish()
+
+		// Create a custom span
+		span := tx.StartChild("custom.operation")
+		time.Sleep(100 * time.Millisecond) // Simulate some work
+		span.Finish()
+
 		w.Write([]byte("Hello, World!"))
 	})
 
@@ -46,6 +55,15 @@ func main() {
 		// Simulate a performance issue
 		span := sentry.StartSpan(r.Context(), "performance")
 		defer span.Finish()
+
+		// Custom instrumentation
+		childSpan1 := span.StartChild("operation1")
+		time.Sleep(1 * time.Second) // Simulate some work
+		childSpan1.Finish()
+
+		childSpan2 := span.StartChild("operation2")
+		time.Sleep(1 * time.Second) // Simulate some more work
+		childSpan2.Finish()
 
 		time.Sleep(2 * time.Second) // Simulate a delay
 		w.Write([]byte("Performance endpoint"))
